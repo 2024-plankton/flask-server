@@ -7,6 +7,28 @@ def get_event_data():
     '''
     return [] # we only need the name of function to identify when to use RAG.
 
+def get_unusual_activity():
+    '''
+    Retrieve list of fun and unusual activities for daily fun!
+
+    Return:
+        List of fun and unusual activities, just for you.
+    '''
+    return [] # as we have to hard-code these...
+
+def search_youtube_video(query: str):
+    '''
+    Return youtube video link.
+
+    Args:
+        query: search query for youtube.
+    
+    Return:
+        youtube video link.
+    '''
+    return '' # as we only need query string...
+
+
 def display_path(target_location: str):
     '''
     Display the path from user location to the target location utilizing external APIs.

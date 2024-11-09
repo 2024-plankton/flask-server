@@ -6,15 +6,13 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from datasets import load_from_disk
 
-from tools import get_event_data, display_path
+from tools import get_event_data, get_unusual_activity, display_path, search_youtube_video
 
 user_chat_sessions = {}
 
 load_dotenv()
 
-events_data = load_from_disk('event_data')
-# events_data.save_to_disk('./event_data')
-# exit()
+events_data = load_from_disk('events_data')
 events_data.add_faiss_index(column="embeddings")
 
 def cosine_similarity(a, b):
@@ -31,19 +29,15 @@ def format_message(role, parts):
 
 def get_system_instruction():
     system_instruction = (
-        '당신은 외로운 서울 시민에게 개인 맞춤 외출 가이드 서비스를 제공하는 심리상담가입니다. '
-        '당신은 서울 시민의 외출 요청에 대해 가이드를 제공하고, 서울 시민과의 대화를 통해 서울 시민의 외출 요청에 대한 정보를 얻습니다. '
-        '대화를 통해 얻은 정보를 바탕으로 사용자에게 꼭 맞는 외출 장소를 추천해주세요. '
-        '추가적으로 당신은 현재 서울에서 열리는 문화행사에 대한 데이터를 접근 할 수 있습니다. '
-        '사용자가 현재 열리는 문화행사에 대해서 질문하거나 그와 유사한 질문을 하면 get_event_data 함수를 호출하여 현재 진행되는 이벤트를 확인하세요. '
-        '사용자가 특정 지역에 가는 길을 물어보거나 특정 지역에 대해서 궁금해한다면 display_path 함수를 사용하여 그 지역에 대한 정보를 알려줘 '
-        '이 질문을 받았을 때, 출발 지점이나 가서 뭐 할지는 고려 대상이 아니야. '
-        '이 명령을 받으면 일단 먼저 display_path 함수를 호출해줘. 상대적으로 우선순위가 높다고 볼 수 있어. '
-        'display_path의 argument type은 string이야. 절대 proto.marshal.collections.maps.MapComposite이 아니야 '
+        '너는 외로운 서울 시민에게 개인 맞춤 컨텐츠를 추천하는 모델이야. '
+        '여기서 말하는 컨텐츠는 서울시에서 하는 문화행사, 유튜브 비디오, 음악, 정말 이색적인 활동들이 있어. '
+        '대화를 통해 상대방을 파악하고 이에 따라서 상대방에게 컨텐츠를 소개해줘. '
+        '너의 궁극적인 목적은 외로운 서울 시민에게 도움이 되는 것이야. 따듯하고 자상한 말투로 상대방을 대해줘. '
+        '너는 여러 가지 함수로 문화행사, 유튜브 비디오, 음악, 이색적인 활동들의 데이터에 접근할 수 있어. 이것을 잘 활용해줘. '
     )
     return format_message('system', system_instruction)
 
-tools = [get_event_data, display_path]
+tools = [get_event_data, display_path, get_unusual_activity, search_youtube_video]
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction(), tools=tools)
 
@@ -81,6 +75,27 @@ def chat():
                 breakpoint()
                 exit()
                 pass # implement this
+            elif fn_name == 'get_unusual_activity':
+                unusual_activity = '''한밤중 한강에서 카약 타기
+                한강에서 밤에 카약을 타며 서울의 야경을 즐길 수 있어요. 불빛으로 물들인 도시의 풍경과 잔잔한 물결을 느끼는 경험이 특별할 거예요.
+
+                복합문화공간에서 VR 아트 감상하기
+                최근 서울에는 AR과 VR을 결합한 예술 전시를 즐길 수 있는 곳들이 많아졌어요. 예술 작품 속을 걸으며 다른 차원의 세계로 빠져드는 느낌을 경험할 수 있습니다.
+
+                세운상가에서 공예 체험하기
+                세운상가에 가면 전자 부품을 활용해 독특한 공예품을 만드는 워크숍에 참여할 수 있어요. 자신만의 전자 악기나 조명을 만들어보는 DIY 체험이 신선할 거예요.
+
+                북촌 한옥마을에서 무형문화재 배우기
+                북촌 한옥마을에서 도자기, 가죽 공예, 다도 같은 무형문화재를 체험해볼 수 있는 곳들이 있어요. 한국 전통 문화를 직접 손으로 느끼며 배워보는 경험이 새로울 거예요.
+
+                서울숲에서 방탈출 게임 즐기기
+                서울숲에는 현실 속에서 미션을 풀며 탈출하는 야외 방탈출 게임이 있어요. 도시 속 자연을 배경으로 추리력을 발휘하며 미션을 수행하는 재미를 느낄 수 있어요.'''
+                response = user_chat_sessions[name].send_message(genai.protos.Part(function_response=genai.protos.FunctionResponse(name=fn_name, response={'result': unusual_activity}))).text
+                responses.append({'text': response})
+            elif fn_name == 'search_youtube_video':
+                print("youtube video")
+                args = fn.args
+                breakpoint()
         else:
             text = part.text
             responses.append({'text': text})
