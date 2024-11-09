@@ -1,0 +1,47 @@
+{
+  "citation": "",
+  "description": "",
+  "features": {
+    "guname": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "themecode": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "date": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "title": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "use_trgt": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "place": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "is_free": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "stringify": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "embeddings": {
+      "feature": {
+        "dtype": "float64",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    }
+  },
+  "homepage": "",
+  "license": ""
+}
