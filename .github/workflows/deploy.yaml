@@ -14,7 +14,7 @@ env:
   ECS_SERVICE: plankton-service
   ECS_CLUSTER: plankton-cluster
   ECS_TASK_DEFINITION: task-definition
-  CONTAINER_NAME: plankton-server
+  CONTAINER_NAME: flask-server
 
 permissions:
   contents: read
