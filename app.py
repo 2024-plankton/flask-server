@@ -116,7 +116,12 @@ def chat():
 @app.route('/cookie', methods=['POST'])
 def set_cookie():
     data = request.get_json()
-    name = data.get("name")
+
+    name = data.get("name") if data else None
+    
+    if not name:
+        return jsonify({"error": "name 값이 제공되지 않았습니다."}), 400
+
     response = make_response(jsonify({"message": "쿠키에 이름이 설정되었습니다!"}))
     response.set_cookie("name", name, max_age=60*60*24)
     return response
