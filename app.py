@@ -43,7 +43,7 @@ def get_system_instruction():
     )
     return format_message('system', system_instruction)
 
-tools = [get_event_data, display_map, get_unusual_activity, search_youtube_video, 'google_search_retrieval']
+tools = [get_event_data, display_map, get_unusual_activity, search_youtube_video]
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction(), tools=tools)
 
@@ -54,7 +54,7 @@ CORS(app, resources={r"/*": {"origins": ["https://itda.seoul.kr", "http://localh
 def hello():
     return "Hello, Flask!"
 
-# curl -X POST http://localhost:8080/chat -H "Content-Type: application/json" -d '{"name": "John", "query": "청량리 근처에 놀 수 있는 곳이 있어?"}'
+# curl -X POST http://localhost:5000/chat -H "Content-Type: application/json" -d '{"name": "John", "query": "청량리 근처에 놀 수 있는 곳이 있어?"}'
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.get_json()  # 요청에서 JSON 데이터 받기
@@ -73,12 +73,15 @@ def chat():
         if fn := part.function_call:
             fn_name = fn.name
             if fn_name == 'get_event_data':
+                print('event_data')
                 event = get_event(query)
                 response = user_chat_sessions[name].send_message(genai.protos.Part(function_response=genai.protos.FunctionResponse(name=fn_name, response={'result': event}))).text
                 responses.append({'text': markdown(response)})
             elif fn_name == 'display_map':
+                print('map')
                 responses.append({'map': fn.args['target_location']})
             elif fn_name == 'get_unusual_activity':
+                print('unusual')
                 unusual_activity = '''한밤중 한강에서 카약 타기
                 한강에서 밤에 카약을 타며 서울의 야경을 즐길 수 있어요. 불빛으로 물들인 도시의 풍경과 잔잔한 물결을 느끼는 경험이 특별할 거예요.
 
@@ -96,6 +99,7 @@ def chat():
                 response = user_chat_sessions[name].send_message(genai.protos.Part(function_response=genai.protos.FunctionResponse(name=fn_name, response={'result': unusual_activity}))).text
                 responses.append({'text': markdown(response)})
             elif fn_name == 'search_youtube_video':
+                print('youtube')
                 responses.append({'youtube': fn.args['query']})
         else:
             text = part.text
