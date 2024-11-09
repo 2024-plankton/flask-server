@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from datasets import load_from_disk
 from flask_cors import CORS
 
-from tools import get_event_data, get_unusual_activity, display_path, search_youtube_video
+from tools import get_event_data, get_unusual_activity, display_map, search_youtube_video
 
 user_chat_sessions = {}
 
@@ -33,14 +33,20 @@ def get_system_instruction():
         '너는 외로운 서울 시민에게 개인 맞춤 컨텐츠를 추천하는 모델이야. '
         '여기서 말하는 컨텐츠는 서울시에서 하는 문화행사, 유튜브 비디오, 음악, 정말 이색적인 활동들이 있어. '
         '대화를 통해 상대방을 파악하고 이에 따라서 상대방에게 컨텐츠를 소개해줘. '
+        '상대방이 컨텐츠를 요구했을 때는 추가적인 재질문 없이 먼저 컨텐츠를 소개해줘. '
+        '왜냐하면 너가 먼저 추천한 컨텐츠에 대해 상대방이 호불호를 말해줄 수 있기 때문이야 '
+        '상대방이 명시적으로 컨텐츠에 대한 추천을 요구하지 않았다고 하더라도 상대방의 상황이나 감정에 맞는 컨텐츠를 소개하는 것은 아주 좋아. '
         '너의 궁극적인 목적은 외로운 서울 시민에게 도움이 되는 것이야. 따듯하고 자상한 말투로 상대방을 대해줘. '
         '너는 여러 가지 함수로 문화행사, 유튜브 비디오, 음악, 이색적인 활동들의 데이터에 접근할 수 있어. 이것을 잘 활용해줘. '
+        '상대방이 특정 지역에 대해서 궁금해하거나 특정 지점으로 가는 경로를 궁금해하면 display_map 함수를 통해서 지도를 사용할 수 있어. '
+        '이런 상황에서는 어떻게 갈 것인지 가서 무엇을 할 것인지 재차 물어보지 말고 바로 dispaly_map 함수를 호출해줘 '
     )
     return format_message('system', system_instruction)
 
-tools = [get_event_data, display_path, get_unusual_activity, search_youtube_video]
+tools = [get_event_data, display_map, get_unusual_activity, search_youtube_video]
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
-model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction(), tools=tools)
+generation_config = genai.GenerationConfig(temperature=0)
+model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction(), tools=tools, generation_config=generation_config)
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["https://itda.seoul.kr", "http://localhost:3000"]}})
@@ -71,12 +77,8 @@ def chat():
                 event = get_event(query)
                 response = user_chat_sessions[name].send_message(genai.protos.Part(function_response=genai.protos.FunctionResponse(name=fn_name, response={'result': event}))).text
                 responses.append({'text': response})
-            elif fn_name == 'display_path':
-                print('map')
-                print(fn.args)
-                breakpoint()
-                exit()
-                pass # implement this
+            elif fn_name == 'display_map':
+                responses.append({'map': fn.args['target_location']})
             elif fn_name == 'get_unusual_activity':
                 unusual_activity = '''한밤중 한강에서 카약 타기
                 한강에서 밤에 카약을 타며 서울의 야경을 즐길 수 있어요. 불빛으로 물들인 도시의 풍경과 잔잔한 물결을 느끼는 경험이 특별할 거예요.
@@ -95,35 +97,11 @@ def chat():
                 response = user_chat_sessions[name].send_message(genai.protos.Part(function_response=genai.protos.FunctionResponse(name=fn_name, response={'result': unusual_activity}))).text
                 responses.append({'text': response})
             elif fn_name == 'search_youtube_video':
-                print("youtube video")
-                args = fn.args
-                breakpoint()
+                responses.append({'youtube': fn.args['query']})
         else:
             text = part.text
             responses.append({'text': text})
     return jsonify({'responses': responses})
-
-    # response = st.session_state.chat.send_message(prompt)
-    # response_parts = []
-    # for part in response.parts:
-    #     if fn := part.function_call:
-    #         fn_name = fn.name
-    #         if fn_name == 'display_path':
-    #             function_response = display_path(**fn.args)
-    #         #print(function_response)
-    #         response_parts.append(genai.protos.Part(function_response=genai.protos.FunctionResponse(name=fn_name, response={"result": function_response})))
-    #         # send it to the front
-    #         #st.session_state.chat.send_message(response_parts)
-    #     else:
-    #         text = part.text
-    #         st.session_state.messages.append({'role': 'model', 'parts': text})
-    #         st.chat_message('model', avatar='static/img/therapist.jpg').write(text)
-    # if response_parts:
-    #     response = st.session_state.chat.send_message(response_parts).text
-    #     st.session_state.messages.append({'role': 'model', 'parts': text})
-    #     st.chat_message('model', avatar='static/img/therapist.jpg').write(text)
-    # st.session_state.messages.append({'role': 'model', 'parts': response})
-    # st.chat_message('model', avatar='static/img/therapist.jpg').write(response)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
