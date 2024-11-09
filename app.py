@@ -1,12 +1,28 @@
 import os
 
+import numpy as np
 import google.generativeai as genai
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+from datasets import load_from_disk
+
+from tools import get_event_data, display_path
 
 user_chat_sessions = {}
 
 load_dotenv()
+
+events_data = load_from_disk('/seongmin/flask-server/data/events_data.hf')
+events_data.add_faiss_index(column="embeddings")
+
+def cosine_similarity(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+def get_event(query):
+    global events_data
+    query = np.array(genai.embed_content(model="models/text-embedding-004", content=query)['embedding'])
+    score, sample = events_data.get_nearest_examples('embeddings', query, k=1)
+    return sample['stringify']
 
 def format_message(role, parts):
     return {'role': role, 'parts': parts}
@@ -16,11 +32,14 @@ def get_system_instruction():
         '당신은 외로운 서울 시민에게 개인 맞춤 외출 가이드 서비스를 제공하는 심리상담가입니다. '
         '당신은 서울 시민의 외출 요청에 대해 가이드를 제공하고, 서울 시민과의 대화를 통해 서울 시민의 외출 요청에 대한 정보를 얻습니다. '
         '대화를 통해 얻은 정보를 바탕으로 사용자에게 꼭 맞는 외출 장소를 추천해주세요. '
+        '추가적으로 당신은 현재 서울에서 열리는 문화행사에 대한 데이터를 접근 할 수 있습니다. '
+        '사용자가 현재 열리는 문화행사에 대해서 질문하거나 그와 유사한 질문을 하면 get_event_data 함수를 호출하여 현재 진행되는 이벤트를 확인하세요.'
     )
     return format_message('system', system_instruction)
 
+tools = [get_event_data]
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
-model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction())
+model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction(), tools=tools)
 
 app = Flask(__name__)
 
@@ -40,8 +59,45 @@ def chat():
     if 'query' not in data or len(data['query'].strip()) == 0:
         return jsonify({"error": "Please enter something!"}), 400
     query = data['query']
-    gemini_response = user_chat_sessions[name].send_message(query).text
-    return jsonify({'response': gemini_response})
+    responses = []
+    response = user_chat_sessions[name].send_message(query)
+    response_parts = []
+    for part in response.parts:
+        if fn := part.function_call:
+            fn_name = fn.name
+            if fn_name == 'get_event_data':
+                event = get_event_data(query)
+                response = user_chat_sessions[name].send_message(genai.protos.Part(function_response=genai.protos.FunctionResponse(name=fn_name, response={'result': event}))).text
+                responses.append({'text': response})
+            elif fn_name == 'display_path':
+                pass # implement this
+        else:
+            text = part.text
+            responses.append({'text': text})
+    return jsonify({'responses': responses})
+
+
+    # response = st.session_state.chat.send_message(prompt)
+    # response_parts = []
+    # for part in response.parts:
+    #     if fn := part.function_call:
+    #         fn_name = fn.name
+    #         if fn_name == 'display_path':
+    #             function_response = display_path(**fn.args)
+    #         #print(function_response)
+    #         response_parts.append(genai.protos.Part(function_response=genai.protos.FunctionResponse(name=fn_name, response={"result": function_response})))
+    #         # send it to the front
+    #         #st.session_state.chat.send_message(response_parts)
+    #     else:
+    #         text = part.text
+    #         st.session_state.messages.append({'role': 'model', 'parts': text})
+    #         st.chat_message('model', avatar='static/img/therapist.jpg').write(text)
+    # if response_parts:
+    #     response = st.session_state.chat.send_message(response_parts).text
+    #     st.session_state.messages.append({'role': 'model', 'parts': text})
+    #     st.chat_message('model', avatar='static/img/therapist.jpg').write(text)
+    # st.session_state.messages.append({'role': 'model', 'parts': response})
+    # st.chat_message('model', avatar='static/img/therapist.jpg').write(response)
 
 if __name__ == '__main__':
     app.run(debug=True, port=8080)
