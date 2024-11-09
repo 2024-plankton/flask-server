@@ -1,6 +1,6 @@
 def get_event_data():
     '''
-    Retrieve current cultural events occuring in Seoul.
+    현재 서울에서 진행중인 행사/공연 등의 다양한 정보를 가져옵니다.
 
     Return:
         Dataset containing the event datas.
@@ -9,7 +9,7 @@ def get_event_data():
 
 def get_unusual_activity():
     '''
-    Retrieve list of fun and unusual activities for daily fun!
+    일상에서는 쉽게 체험할 수 없는 이색적인 것들을 가져옵니다.
 
     Return:
         List of fun and unusual activities, just for you.
@@ -18,7 +18,7 @@ def get_unusual_activity():
 
 def search_youtube_video(query: str):
     '''
-    Return youtube video link.
+    관련있는 유튜브 비디오 링크를 가져옵니다.
 
     Args:
         query: search query for youtube.
@@ -31,8 +31,8 @@ def search_youtube_video(query: str):
 
 def display_map(target_location: str):
     '''
-    Display the map for the target location utilizing external APIs.
-    User locations are handled from front-end.
+    지도 API를 활용하여 목적지에 대한 정보를 받아옵니다.
+    출발지의 정보는 front-end에서 처리됩니다.
 
     Args:
         target_location: Name of the target location e.g. 청량리역, 강남역 스타벅스 etc.
