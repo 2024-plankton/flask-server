@@ -43,7 +43,7 @@ genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction(), tools=tools)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://itda.seoul.kr"}})
+CORS(app, resources={r"/*": {"origins": ["https://itda.seoul.kr", "http://localhost:3000"]}})
 
 @app.route('/', methods=["GET"])
 def hello():
