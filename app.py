@@ -5,6 +5,7 @@ import google.generativeai as genai
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from datasets import load_from_disk
+from markdown import markdown
 
 from tools import get_event_data, get_unusual_activity, display_map, search_youtube_video
 
@@ -74,7 +75,7 @@ def chat():
             if fn_name == 'get_event_data':
                 event = get_event(query)
                 response = user_chat_sessions[name].send_message(genai.protos.Part(function_response=genai.protos.FunctionResponse(name=fn_name, response={'result': event}))).text
-                responses.append({'text': response})
+                responses.append({'text': markdown(response)})
             elif fn_name == 'display_map':
                 responses.append({'map': fn.args['target_location']})
             elif fn_name == 'get_unusual_activity':
@@ -93,12 +94,12 @@ def chat():
                 서울숲에서 방탈출 게임 즐기기
                 서울숲에는 현실 속에서 미션을 풀며 탈출하는 야외 방탈출 게임이 있어요. 도시 속 자연을 배경으로 추리력을 발휘하며 미션을 수행하는 재미를 느낄 수 있어요.'''
                 response = user_chat_sessions[name].send_message(genai.protos.Part(function_response=genai.protos.FunctionResponse(name=fn_name, response={'result': unusual_activity}))).text
-                responses.append({'text': response})
+                responses.append({'text': markdown(response)})
             elif fn_name == 'search_youtube_video':
                 responses.append({'youtube': fn.args['query']})
         else:
             text = part.text
-            responses.append({'text': text})
+            responses.append({'text': markdown(text)})
     return jsonify({'responses': responses})
 
 if __name__ == '__main__':
