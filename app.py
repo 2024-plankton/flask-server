@@ -44,7 +44,7 @@ def get_system_instruction():
     )
     return format_message('system', system_instruction)
 
-tools = [get_event_data, display_map, get_unusual_activity, search_youtube_video]
+tools = [get_event_data, display_map, get_unusual_activity, search_youtube_video, 'google_search_retrieval']
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction(), tools=tools)
 
