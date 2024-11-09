@@ -29,9 +29,9 @@ def search_youtube_video(query: str):
     return '' # as we only need query string...
 
 
-def display_path(target_location: str):
+def display_map(target_location: str):
     '''
-    Display the path from user location to the target location utilizing external APIs.
+    Display the map for the target location utilizing external APIs.
     User locations are handled from front-end.
 
     Args:
