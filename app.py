@@ -47,7 +47,9 @@ def get_system_instruction():
 
 tools = [get_event_data, display_map, get_unusual_activity, search_youtube_video]
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
-model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction(), tools=tools)
+generation_config = genai.GenerationConfig(temperature=0)
+model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction(), tools=tools, generation_config=generation_config)
+#model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction(), tools=tools)
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["https://itda.seoul.kr", "http://localhost:3000"]}})
