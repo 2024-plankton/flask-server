@@ -66,7 +66,7 @@ def chat():
         if fn := part.function_call:
             fn_name = fn.name
             if fn_name == 'get_event_data':
-                event = get_event_data(query)
+                event = get_event(query)
                 response = user_chat_sessions[name].send_message(genai.protos.Part(function_response=genai.protos.FunctionResponse(name=fn_name, response={'result': event}))).text
                 responses.append({'text': response})
             elif fn_name == 'display_path':
