@@ -4,6 +4,8 @@ import google.generativeai as genai
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
+user_chat_sessions = {}
+
 load_dotenv()
 
 def format_message(role, parts):
@@ -17,13 +19,10 @@ def get_system_instruction():
     )
     return format_message('system', system_instruction)
 
-genai.configure(api_key=os.environ['GEMINI_API_KEY'])
+genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction())
-chat = model.start_chat(history=[])
 
 app = Flask(__name__)
-
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 @app.route('/', methods=["GET"])
 def hello():
@@ -36,10 +35,12 @@ def chat():
     if not data or 'name' not in data:
         return jsonify({"error": "No name provided!"}), 400
     name = data['name']
+    if name not in user_chat_sessions:
+        user_chat_sessions[name] = model.start_chat(history=[])
     if 'query' not in data or len(data['query'].strip()) == 0:
         return jsonify({"error": "Please enter something!"}), 400
     query = data['query']
-    gemini_response = chat.send_message(query).text
+    gemini_response = user_chat_sessions[name].send_message(query).text
     return jsonify({'response': gemini_response})
 
 if __name__ == '__main__':
