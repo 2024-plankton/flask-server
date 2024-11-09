@@ -5,6 +5,7 @@ import google.generativeai as genai
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from datasets import load_from_disk
+from flask_cors import CORS
 
 from tools import get_event_data, display_path
 
@@ -42,6 +43,7 @@ genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction(), tools=tools)
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/', methods=["GET"])
 def hello():
