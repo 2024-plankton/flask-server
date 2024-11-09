@@ -3,7 +3,7 @@ import os
 import numpy as np
 import google.generativeai as genai
 from google.generativeai.types import content_types
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from dotenv import load_dotenv
 from datasets import load_from_disk
 from flask_cors import CORS
@@ -112,6 +112,22 @@ def chat():
             text = part.text
             responses.append({'text': markdown(text)})
     return jsonify({'responses': responses})
+
+@app.route('/cookie', methods=['POST'])
+def set_cookie():
+    data = request.get_json()
+    name = data.get("name")
+    response = make_response(jsonify({"message": "쿠키에 이름이 설정되었습니다!"}))
+    response.set_cookie("name", name, max_age=60*60*24)
+    return response
+
+@app.route('/cookie', methods=['GET'])
+def get_cookie():
+    name = request.cookies.get("name")
+    if name:
+        return jsonify({"message": f"쿠키에 저장된 이름은 {name}입니다."})
+    else:
+        return jsonify({"message": "쿠키가 설정되어 있지 않습니다."})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
