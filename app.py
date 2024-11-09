@@ -5,6 +5,7 @@ import google.generativeai as genai
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from datasets import load_from_disk
+from flask_cors import CORS
 from markdown import markdown
 
 from tools import get_event_data, get_unusual_activity, display_map, search_youtube_video
@@ -49,6 +50,7 @@ generation_config = genai.GenerationConfig(temperature=0)
 model = genai.GenerativeModel(os.environ['GEMINI_TEXT_GENERATION_MODEL'], system_instruction=get_system_instruction(), tools=tools, generation_config=generation_config)
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": ["https://itda.seoul.kr", "http://localhost:3000"]}})
 
 @app.route('/', methods=["GET"])
 def hello():
@@ -103,4 +105,4 @@ def chat():
     return jsonify({'responses': responses})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+    app.run(debug=True, port=5000)
