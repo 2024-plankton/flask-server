@@ -13,7 +13,7 @@ user_chat_sessions = {}
 
 load_dotenv()
 
-events_data = load_from_disk('data/events_data')
+events_data = load_from_disk('events_data')
 events_data.add_faiss_index(column="embeddings")
 
 def cosine_similarity(a, b):
