@@ -1,7 +1,13 @@
 from flask import Flask, request, jsonify
+from dotenv import load_dotenv
+import os
 
+# .env 파일에서 환경 변수 로드
+load_dotenv()
 
 app = Flask(__name__)
+
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 
 @app.route('/', methods=["GET"])
