@@ -3,5 +3,5 @@ venv
 .env
 *.pyc
 *.json
-*.arrow
 *test*
+cache*

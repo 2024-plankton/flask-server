@@ -7,15 +7,15 @@ def get_event_data():
     '''
     return [] # we only need the name of function to identify when to use RAG.
 
-def display_path(user_location: str, target_location: str):
+def display_path(target_location: str):
     '''
-    Display the path from user location to  the target location utilizing external APIs.
+    Display the path from user location to the target location utilizing external APIs.
+    User locations are handled from front-end.
 
     Args:
-        user_location: geometric location of user.
-        target_location: geometric location of target.
+        target_location: Name of the target location e.g. 청량리역, 강남역 스타벅스 etc.
     
-    Return:
+    Returns:
         A url containing the path.
     '''
     return 'https://naver.com'
