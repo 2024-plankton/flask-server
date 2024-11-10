@@ -7,15 +7,6 @@ def get_event_data():
     '''
     return [] # we only need the name of function to identify when to use RAG.
 
-def get_unusual_activity():
-    '''
-    일상에서는 쉽게 체험할 수 없는 이색적인 것들을 가져옵니다.
-
-    Return:
-        List of fun and unusual activities, just for you.
-    '''
-    return [] # as we have to hard-code these...
-
 def search_youtube_video(query: str):
     '''
     관련있는 유튜브 비디오 링크를 가져옵니다.
