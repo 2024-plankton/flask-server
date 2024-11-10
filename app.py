@@ -62,9 +62,7 @@ def hello():
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.get_json()  # 요청에서 JSON 데이터 받기
-    if not data or 'name' not in data:
-        return jsonify({"error": "No name provided!"}), 400
-    name = data['name']
+    name = request.cookies.get('name')
     if name not in user_chat_sessions:
         user_chat_sessions[name] = model.start_chat(history=[])
     if 'query' not in data or len(data['query'].strip()) == 0:
